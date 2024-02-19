@@ -1,0 +1,29 @@
+SELECT * FROM [dbo].[EarthQuake2017withhour]
+
+--vi)	Provide query/analysis to give biggest earthquake of 2017 
+SELECT * 
+FROM [dbo].[EarthQuake2017withhour]
+WHERE Magnitude = (SELECT MAX(Magnitude) FROM [dbo].[EarthQuake2017withhour]WHERE DATEPART(year, Event_Occured) = 2017);
+
+
+--vii)	Provide query/analysis to give most probable hour of the day for the earthquakes bucketed by the range of 
+--magnitude (0-1,1-2,2-3,3-4,4-5,5-6,>6   For border values in the bucket, include them in the bucket where the 
+--value is a lower limit so for 1 include it in 1-2 bucket)
+
+WITH BUCKET AS( 
+SELECT DATEPART(hour,Event_Occured)as Hour_of_the_day,Event_Occured,
+case 
+when Magnitude>=0 AND Magnitude <1 THEN '0-1'
+when Magnitude>=1 AND Magnitude <2 THEN '1-2'
+when Magnitude>=2 AND Magnitude <3 THEN '2-3'
+when Magnitude>=3 AND Magnitude <4 THEN '3-4'
+when Magnitude>=4 AND Magnitude <5 THEN '4-5'
+when Magnitude>=5 AND Magnitude <6 THEN '5-6'
+ELSE '>6'
+END AS Border_Values
+FROM [dbo].[EarthQuake2017withhour])
+SELECT Hour_of_the_day,Border_Values,Count(*) as No_times_earthquake 
+FROM BUCKET
+WHERE DATEPART(year, Event_Occured) = 2017
+Group By Hour_of_the_day,Border_Values
+Order BY Border_Values
